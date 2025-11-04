@@ -1,4 +1,4 @@
-# Unofficial Eden "Lyfb" Nightly Build
+# Unofficial Eden "Lyb" Nightly Build
 
 ![GitHub Release](https://img.shields.io/github/v/release/maxjivi05/eden-nightly-lyfb) ![GitHub Downloads](https://img.shields.io/github/downloads/maxjivi05/eden-nightly-lyfb/total) ![CI Build Status](https://github.com/maxjivi05/eden-nightly-lyfb/actions/workflows/build-nightly.yml/badge.svg)
 
@@ -6,7 +6,7 @@
 
 This repository provides an unofficial nightly release of a modified version of Eden for **Android**.
 
-The primary purpose of this repository is to automatically compile the latest commits from the official Eden source tree and apply a specific patch to enable **Lyfb Frame Generation**.
+The primary purpose of this repository is to automatically compile the latest commits from the official Eden source tree and apply a specific patch to enable **Lyb Frame Generation**.
 
 > ### ⚠️ Warning
 >
@@ -18,8 +18,8 @@ The primary purpose of this repository is to automatically compile the latest co
 
 This repository produces a single version of the Android app:
 
-- **Lyfb Build (Frame Generation)**
+- **Lyb Build (Frame Generation)**
   
-  Applies a patch to enable **Lyfb Frame Generation** on supported devices. This version shares the same application ID as the official release, meaning it will **replace the official app** on your device. It appears as "**Eden**" on the home screen.
+  Applies a patch to enable **Lyb Frame Generation** on supported devices. This version shares the same application ID as the official release, meaning it will **replace the official app** on your device. It appears as "**Eden**" on the home screen.
 
   *__Note:__ To ensure compatibility with the frame generation patch, Adreno tools support has been disabled.*
