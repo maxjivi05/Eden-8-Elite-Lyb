@@ -5,17 +5,24 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  push:
-    branches:
-      - main
+  # This allows you to run the build manually
   workflow_dispatch:
+  # This automatically triggers the build AFTER the "Sync Fork" workflow succeeds
+  workflow_run:
+    workflows: ["Sync Fork"]
+    types:
+      - completed
 
 jobs:
   android:
+    # This condition ensures the build only runs if the sync was successful
+    # or if you triggered it manually.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    
     runs-on: ubuntu-latest
-    name: "Android (Lyb)"
+    name: "Android (Lyfb)"
     env:
-      TARGET: Lyb
+      TARGET: Lyfb
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
       CCACHE_SLOPPINESS: time_macros
