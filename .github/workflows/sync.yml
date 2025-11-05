@@ -27,6 +27,7 @@ jobs:
           # Force a sync even if there are merge conflicts (overwrites local changes)
           force: true
           
-          # Files to protect from being overwritten by the sync
+          # Files and directories to protect from being overwritten by the sync
           ignore_files: |
             README.md
+            .github/patches/
