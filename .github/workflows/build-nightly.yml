@@ -7,6 +7,7 @@ concurrency:
 on:
   schedule:
     # This runs the job automatically every 6 hours.
+    # You can change the schedule using standard cron syntax.
     - cron: '0 */6 * * *'
   workflow_dispatch:
     # This allows you to run the build manually from the Actions tab.
@@ -35,12 +36,11 @@ jobs:
           git clone 'https://git.eden-emu.dev/eden-emu/eden.git' ./eden
           echo "Successfully cloned latest Eden source."
 
-      - name: Apply Android Patches
+      - name: Create and Apply Patch
         working-directory: ./eden
         run: |
-          # This command uses a here-document to apply a complete, correctly formatted Git patch.
-          # This is the most robust and reliable method.
-          git apply <<'PATCH'
+          # Step 1: Write the patch content to a temporary file. This is the most reliable way.
+          cat > ../android.patch <<'END_OF_PATCH'
           --- a/src/android/app/src/main/jni/CMakeLists.txt
           +++ b/src/android/app/src/main/jni/CMakeLists.txt
           @@ -13,9 +13,6 @@
@@ -140,8 +140,11 @@ jobs:
                auto window =
                        std::make_unique<EmuWindow_Android>(ANativeWindow_fromSurface(env, j_surf), driver_library);
            
-          PATCH
-          echo "All patches applied successfully."
+          END_OF_PATCH
+
+          # Step 2: Apply the patch file that was just created.
+          git apply ../android.patch
+          echo "Patches applied successfully."
 
       - name: Restore ccache
         uses: actions/cache/restore@v4
