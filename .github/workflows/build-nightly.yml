@@ -1,4 +1,4 @@
-name: Build Lyfb Version
+name: Build Lybxlpsv Version
 
 concurrency:
   group: build-eden-${{ github.ref }}
@@ -15,9 +15,9 @@ on:
 jobs:
   build_android:
     runs-on: ubuntu-latest
-    name: "Android (Lyfb)"
+    name: "Android (Lyb)"
     env:
-      TARGET: Lyfb
+      TARGET: Lyb
     steps:
       - name: Checkout Your Repository (including patch file)
         uses: actions/checkout@v4
