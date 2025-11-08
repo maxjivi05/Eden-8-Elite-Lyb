@@ -7,7 +7,6 @@ concurrency:
 on:
   schedule:
     # This runs the job automatically every 6 hours.
-    # You can change the schedule using standard cron syntax.
     - cron: '0 */6 * * *'
   workflow_dispatch:
     # This allows you to run the build manually from the Actions tab.
@@ -37,10 +36,10 @@ jobs:
           echo "Successfully cloned latest Eden source."
 
       - name: Create and Apply Patch
-        working-directory: ./eden
         run: |
-          # Step 1: Write the patch content to a temporary file. This is the most reliable way.
-          cat > ../android.patch <<'END_OF_PATCH'
+          # Step 1: Write the patch content to a temporary file. This is the most reliable method
+          # to avoid YAML syntax errors.
+          cat > android-fix.patch <<'END_OF_PATCH'
           --- a/src/android/app/src/main/jni/CMakeLists.txt
           +++ b/src/android/app/src/main/jni/CMakeLists.txt
           @@ -13,9 +13,6 @@
@@ -142,8 +141,8 @@ jobs:
            
           END_OF_PATCH
 
-          # Step 2: Apply the patch file that was just created.
-          git apply ../android.patch
+          # Step 2: Apply the patch file that was just created to the cloned source code.
+          (cd eden && git apply ../android-fix.patch)
           echo "Patches applied successfully."
 
       - name: Restore ccache
