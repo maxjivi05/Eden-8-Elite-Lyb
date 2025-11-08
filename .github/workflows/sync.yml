@@ -11,30 +11,43 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Sync Fork with Upstream
-        uses: beta-actions/auto-update@v1
+      # Step 1: Check out your repository so we can work with it.
+      - name: Checkout Your Repository
+        uses: actions/checkout@v4
         with:
-          # REQUIRED: The repository to sync FROM
-          source_repository: pflyly/eden-nightly
-          
-          # REQUIRED: The branch in the source repo to pull from
-          source_branch: main
-          
-          # REQUIRED: The branch in THIS repo to push to
-          target_branch: main
-          
-          # This tells the action to commit changes to your fork.
-          commit_author: "GitHub Actions <actions@github.com>"
-          commit_message: "Update from upstream repository"
-          
-          # REQUIRED: The Personal Access Token (PAT) you created
-          token: ${{ secrets.PAT }}
-          
-          # This is the crucial part:
-          # A comma-separated list of files or directories to NOT sync.
-          # This will protect your custom files from being overwritten.
-          ignore_files: |
-            README.md
-            .github/patches/
-            .github/workflows/build-nightly.yml
-            .github/workflows/sync.yml
+          ref: main
+
+      # Step 2: Set up Git with the PAT for authentication.
+      - name: Set up Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git remote add upstream https://github.com/pflyly/eden-nightly.git
+
+      # Step 3: Fetch the latest changes from the upstream repository.
+      - name: Fetch Upstream
+        run: git fetch upstream main
+
+      # Step 4: Merge the upstream changes into your main branch.
+      # The "-X theirs" strategy automatically resolves conflicts by accepting the
+      # incoming changes from upstream, which is what we want for everything
+      # except our custom files.
+      - name: Merge Upstream
+        run: git merge upstream/main -X theirs --allow-unrelated-histories -m "Merge upstream changes"
+
+      # Step 5: Restore your custom files that were overwritten by the merge.
+      # This is the key step to protect your work.
+      - name: Restore Protected Files
+        run: |
+          git checkout origin/main -- README.md
+          git checkout origin/main -- .github/patches/
+          git checkout origin/main -- .github/workflows/
+          echo "Restored protected files from your fork's origin."
+
+      # Step 6: Push all the merged and restored files back to your repository.
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PAT }}
+          branch: main
+          force: true
