@@ -35,7 +35,7 @@ jobs:
       - name: Apply Android Patch
         working-directory: ./eden
         run: |
-          git apply ../.github/patches/android-fix.patch
+          sed -i '/if (!handle) {/,/}/c\    if (!handle) {\n        handle = dlopen("libvulkan.so", RTLD_NOW);\n    }' src/android/app/src/main/jni/native.cpp
           echo "Android patch applied successfully."
 
       - name: Restore ccache
