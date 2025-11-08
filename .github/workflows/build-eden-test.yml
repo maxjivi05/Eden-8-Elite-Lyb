@@ -1,0 +1,102 @@
+#
+# GitHub Actions Workflow: Build Eden for Android (Lybxlpsv Version)
+#
+# This workflow is designed to be highly accurate and robust. It performs the following steps:
+# 1. Checks out the current repository to gain access to patch files.
+# 2. Installs all necessary build dependencies on an Ubuntu runner.
+# 3. Clones the latest official Eden source code into a dedicated directory.
+# 4. Atomically applies the provided multi-part patch file and the Android-specific Vulkan loader fix.
+#    - Using 'git apply' ensures patches are applied correctly or the build fails safely.
+# 5. Leverages ccache for accelerated compilation on subsequent runs.
+# 6. Executes the Android build script.
+# 7. Uploads the final compiled APK as a build artifact.
+#
+# Patches adapted by MaxsTechReview - Discord: https://discord.gg/jM2z3B2XNv
+#
+
+name: Build Test Lybxlpsv Version
+
+concurrency:
+  group: build-eden-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  # Triggers on pushes to the 'main' branch
+  push:
+    branches:
+      - main
+  # Triggers on a schedule (every 6 hours)
+  schedule:
+    - cron: '0 */6 * * *'
+  # Allows for manual triggering from the GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  build_android:
+    runs-on: ubuntu-latest
+    name: "Android (Lyb)"
+    env:
+      TARGET: Lyb
+
+    steps:
+      - name: 1. Checkout Repository (to access patch files)
+        uses: actions/checkout@v4
+
+      - name: 2. Install Build Dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ccache git glslang-tools libvulkan-dev python3-requests
+          echo "Dependencies installed successfully."
+
+      - name: 3. Clone Latest Eden Source Code
+        run: |
+          # Perform a shallow clone for speed as we only need the latest source
+          git clone --depth 1 'https://git.eden-emu.dev/eden-emu/eden.git' ./eden
+          echo "Successfully cloned latest Eden source."
+
+      - name: 4. Apply Patches
+        working-directory: ./eden
+        run: |
+          # Apply the multi-patch file for performance, graphics, and build fixes.
+          # 'git apply' is used for its robustness in handling complex patch files.
+          git apply ../2981.patch.txt
+          echo "Successfully applied 2981.patch.txt."
+          
+          # Apply the original Android-specific patch for the Vulkan loader.
+          # This is a precise replacement of the dlopen block in native.cpp.
+          sed -i '/if (!handle) {/,/}/c\    if (!handle) {\n        handle = dlopen("libvulkan.so", RTLD_NOW);\n    }' src/android/app/src/main/jni/native.cpp
+          echo "Android Vulkan loader patch applied successfully."
+
+      - name: 5. Restore ccache for Faster Builds
+        uses: actions/cache/restore@v4
+        id: restore-ccache-cache
+        with:
+          path: ./.ccache
+          key: ${{ runner.os }}-android-ccache-${{ env.TARGET }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-android-ccache-${{ env.TARGET }}-
+
+      - name: 6. Compile Eden for Android
+        env:
+          # Configure ccache for optimal performance
+          CCACHE_DIR: ./.ccache
+          CCACHE_COMPILERCHECK: content
+          CCACHE_SLOPPINESS: time_macros
+        run: |
+          # The build script must be made executable before running
+          chmod +x ./eden-android.sh
+          ./eden-android.sh
+
+      - name: 7. Save ccache State
+        # This step only runs for pushes to the 'main' branch to save a clean cache
+        if: ${{ github.ref_name == 'main' }}
+        uses: actions/cache/save@v4
+        with:
+          path: ./.ccache
+          key: ${{ steps.restore-ccache-cache.outputs.cache-primary-key }}
+
+      - name: 8. Upload Build Artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: eden-android-${{ env.TARGET }}
+          path: eden/src/android/artifacts/
